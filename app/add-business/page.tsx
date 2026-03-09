@@ -5,8 +5,8 @@ import Link from "next/link";
 const GOLD = "#C9A84C";
 const GOLD_DARK = "#A07830";
 
-const CATEGORIES = ["Restaurants","Hotels","Hospitals","Beauty & Spa","Auto Services","Education","Finance","Fitness","Home Services","Legal","Real Estate","Shopping","Pharmacy","Grocery","Electronics","Clothing","Bakery","Cafe","Gym","Salon","Spa","Clinic","Dental","Veterinary","Petrol Station","Bank","Insurance","Travel","Events","Photography"];
-const CITIES = ["Delhi","New Delhi","Noida","Greater Noida","Gurgaon","Gurugram","Faridabad","Ghaziabad","Gorakhpur","NOIDA Extension","Dwarka","Rohini","Laxmi Nagar","Janakpuri"];
+const CATEGORIES = ["Restaurants", "Hotels", "Hospitals", "Beauty & Spa", "Auto Services", "Education", "Finance", "Fitness", "Home Services", "Legal", "Real Estate", "Shopping", "Pharmacy", "Grocery", "Electronics", "Clothing", "Bakery", "Cafe", "Gym", "Salon", "Spa", "Clinic", "Dental", "Veterinary", "Petrol Station", "Bank", "Insurance", "Travel", "Events", "Photography"];
+const CITIES = ["Delhi", "New Delhi", "Noida", "Greater Noida", "Gurgaon", "Gurugram", "Faridabad", "Ghaziabad", "Gorakhpur", "NOIDA Extension", "Dwarka", "Rohini", "Laxmi Nagar", "Janakpuri"];
 
 export default function AddBusinessPage() {
   const [step, setStep] = useState(1);
@@ -29,6 +29,10 @@ export default function AddBusinessPage() {
     bg: "var(--bg)", bgSec: "var(--bg-secondary)", bgCard: "var(--bg-card)",
     text: "var(--text-primary)", textSec: "var(--text-secondary)", textMuted: "var(--text-muted)", border: "var(--border)"
   };
+
+  const dark = false;
+  const inputStyle = { background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 8, padding: "10px 14px", fontSize: 14, color: s.text, width: "100%", outline: "none", fontFamily: "'DM Sans', sans-serif" };
+  const labelStyle = { fontSize: 13, fontWeight: 600, color: s.textSec, marginBottom: 6, display: "block" };
 
   if (submitted) {
     return (
@@ -56,11 +60,6 @@ export default function AddBusinessPage() {
       </div>
     );
   }
-
-  const dark = false;
-
-  const inputStyle = { background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 8, padding: "10px 14px", fontSize: 14, color: s.text, width: "100%", outline: "none", fontFamily: "'DM Sans', sans-serif" };
-  const labelStyle = { fontSize: 13, fontWeight: 600, color: s.textSec, marginBottom: 6, display: "block" };
 
   return (
     <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCityBySlug, getCategoryBySlug, getBusinessesByCityAndCategory } from "../../../../lib/data";
-import BusinessMap from "../../../../components/BusinessMap";
+import DynamicBusinessMap from "../../../../components/DynamicBusinessMap";
 
 export async function generateMetadata({
   params,
@@ -47,7 +47,7 @@ export default async function CityCategoryPage({
       <h1 className="mt-2 text-2xl font-bold text-zinc-900">{category.name} in {city.name}</h1>
 
       <div className="mt-6 h-80 w-full overflow-hidden rounded-xl border border-zinc-200">
-        <BusinessMap
+        <DynamicBusinessMap
           businesses={businesses}
           center={city.lat && city.lng ? [city.lat, city.lng] : undefined}
           zoom={12}
