@@ -16,26 +16,37 @@ export interface Category {
   created_at?: string;
 }
 
-export interface Business {
-  id: string;
-  name: string;
-  slug: string;
-  category_id: string;
-  city_id: string;
-  address: string | null;
-  lat: number | null;
-  lng: number | null;
-  phone: string | null;
-  whatsapp: string | null;
-  website: string | null;
-  email: string | null;
-  description: string | null;
-  tags: string[];
-  is_featured: boolean;
-  is_verified: boolean;
-  status: "draft" | "published";
-  created_at?: string;
-  updated_at?: string;
+export type BusinessBase = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  category_id: string
+  city_id: string
+  state_id: string
+  address: string | null
+  pincode: string | null
+  phone: string | null
+  email: string | null
+  website: string | null
+  whatsapp: string | null
+  rating: number
+  review_count: number
+  price_range: string | null
+  plan: 'free' | 'featured' | 'premium'
+  is_verified: boolean
+  is_claimed: boolean
+  is_active: boolean
+  opening_hours: Record<string, string> | null
+  amenities: string[] | null
+  tags: string[] | null
+  created_at: string
+}
+
+export type Business = BusinessBase & {
+  is_featured?: boolean;
+  lat?: number | null;
+  lng?: number | null;
   category?: Category;
   city?: City;
 }
