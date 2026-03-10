@@ -1,55 +1,358 @@
-@import "tailwindcss";
+/*
+ * ============================================================
+ * FILE: app/globals.css (UI/UX Refresh Branch)
+ * BRANCH: feature/ui-ux-refresh
+ * PURPOSE: New premium design tokens and styles for the whole site.
+ *
+ * WHAT THIS FILE CHANGES:
+ * - Dark mode by default (professional, modern look)
+ * - Gold accent color throughout
+ * - Smooth hover animations on cards and buttons
+ * - Better font sizes and spacing
+ * - Glassmorphism effects for cards
+ * - Smooth page transitions
+ *
+ * TO REVIEW: Push this branch to GitHub → Vercel auto-deploys a
+ * preview URL like: https://maps-git-feature-ui-ux-skmstudioservices-cyber.vercel.app
+ * Use that link to check before merging to main.
+ *
+ * WHEN TO MERGE TO MAIN:
+ * - Once you're happy with how the whole site looks.
+ * ============================================================
+ */
 
+/* ── Google Fonts - Premium Typography ── */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* ══════════════════════════════════════════
+   DESIGN TOKENS — Edit these to change the
+   whole site's color scheme in one place.
+   ══════════════════════════════════════════ */
 :root {
+  /* Brand Colors */
   --gold: #C9A84C;
-  --gold-light: #E8C96A;
   --gold-dark: #A07830;
-  --gold-muted: #F5E6C0;
-  --bg: #FFFFFF;
-  --bg-secondary: #F9F7F2;
-  --bg-card: #FFFFFF;
-  --text-primary: #0A0A0A;
-  --text-secondary: #4A4A4A;
-  --text-muted: #888888;
-  --border: #E5DFC8;
-  --border-strong: #C9A84C;
-  --shadow: rgba(201, 168, 76, 0.15);
-}
+  --gold-light: #E8C96A;
 
-[data-theme="dark"] {
-  --bg: #0A0A0A;
-  --bg-secondary: #111111;
+  /* Dark Background Palette */
+  --bg: #0D0D0D;
+  --bg-secondary: #161616;
   --bg-card: #1A1A1A;
+  --bg-elevated: #222222;
+
+  /* Text Colors */
   --text-primary: #F5F0E8;
-  --text-secondary: #C0B090;
+  --text-secondary: #B0A898;
   --text-muted: #666666;
-  --border: #2A2520;
-  --border-strong: #C9A84C;
-  --shadow: rgba(201, 168, 76, 0.1);
+
+  /* Border */
+  --border: #2A2A2A;
+  --border-gold: rgba(201, 168, 76, 0.25);
+
+  /* Functional Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+
+  /* Spacing rhythm */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-gold: 0 4px 24px rgba(201, 168, 76, 0.15);
 }
 
-* { box-sizing: border-box; }
+/* ══════════════════════════════════════════
+   RESET & BASE STYLES
+   ══════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text-primary);
-  font-family: 'DM Sans', -apple-system, sans-serif;
-  transition: background 0.3s, color 0.3s;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-secondary); }
-::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+/* ══════════════════════════════════════════
+   TYPOGRAPHY CLASSES
+   ══════════════════════════════════════════ */
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Use for page headings */
+h1, h2, h3 {
+  font-family: 'Sora', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.3;
 }
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
+
+/* Gradient gold text — for brand name etc. */
+.text-gold {
+  color: var(--gold);
 }
-@keyframes slideIn {
-  from { transform: translateX(120%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════════════════════════════════════
+   CARD COMPONENT
+   A reusable card with hover effect.
+   ══════════════════════════════════════════ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Lifted card effect on hover */
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+/* Glassmorphism card — semi-transparent with blur */
+.card-glass {
+  background: rgba(26, 26, 26, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  border-radius: var(--radius-lg);
+}
+
+/* ══════════════════════════════════════════
+   BUTTON STYLES
+   ══════════════════════════════════════════ */
+
+/* Primary gold CTA button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #000;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 22px;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(201, 168, 76, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0px);
+}
+
+/* Secondary/outline button */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ══════════════════════════════════════════
+   BADGE / TAG STYLES
+   ══════════════════════════════════════════ */
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.02em;
+}
+
+.badge-gold {
+  background: rgba(201, 168, 76, 0.12);
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+}
+
+.badge-green {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge-orange {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* ══════════════════════════════════════════
+   FORM INPUTS
+   ══════════════════════════════════════════ */
+input, select, textarea {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+}
+
+/* ══════════════════════════════════════════
+   SCROLLBAR (custom thin gold scrollbar)
+   ══════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-dark);
+}
+
+/* ══════════════════════════════════════════
+   ANIMATIONS
+   ══════════════════════════════════════════ */
+
+/* Fade in from below — for page loads */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.4s ease forwards;
+}
+
+/* Shimmer — for loading skeleton placeholders */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-elevated) 50%, var(--bg-card) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* Pulse — for live status indicators */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════ */
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.nav-link.active {
+  color: var(--gold);
+}
+
+/* ══════════════════════════════════════════
+   UTILITY - GRID HELPERS
+   ══════════════════════════════════════════ */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════
+   DIVIDER
+   ══════════════════════════════════════════ */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
 }
