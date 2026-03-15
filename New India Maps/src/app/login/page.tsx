@@ -18,9 +18,39 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usingMagicLink, setUsingMagicLink] = useState(false);
+  const [sentMessage, setSentMessage] = useState<string | null>(null);
 
   const GOLD = "#C9A84C";
   const GOLD_DARK = "#A07830";
+
+  /**
+   * ACTION: handleMagicLink
+   * UTILITY: Sends a Magic Link (OTP) to the user's email.
+   * USE CASE: Requested for easier/secure passwordless access.
+   */
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSentMessage(null);
+
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin + '/dashboard',
+        },
+      });
+
+      if (otpError) throw otpError;
+      setSentMessage('Check your email! We sent you a secure login link.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send magic link.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /**
    * ACTION: handleGoogleLogin
@@ -40,7 +70,7 @@ export default function LoginPage() {
 
   /**
    * ACTION: handleLogin
-   * UTILITY: Authenticates user against Supabase Auth.
+   * UTILITY: Authenticates user against Supabase Auth using Password.
    */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +119,12 @@ export default function LoginPage() {
               </div>
             )}
 
+            {sentMessage && (
+              <div className="p-4 bg-emerald-950/20 border border-emerald-900/50 rounded-xl text-emerald-400 text-xs font-bold flex items-center gap-2 animate-pulse">
+                <span>✅</span> {sentMessage}
+              </div>
+            )}
+
             <button 
               onClick={handleGoogleLogin}
               disabled={loading}
@@ -109,7 +145,7 @@ export default function LoginPage() {
               <div className="flex-grow border-t border-zinc-800"></div>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={usingMagicLink ? handleMagicLink : handleLogin} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 ml-1">Secure Email</label>
                 <div className="relative group">
@@ -118,40 +154,56 @@ export default function LoginPage() {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@skmstudio.maps"
+                    placeholder="skmstudio.services@gmail.com"
                     className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl py-4 pl-12 pr-4 outline-none focus:border-[#C9A84C] transition-all text-sm font-medium"
                     required
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Master Password</label>
-                  <Link href="#" className="text-[10px] font-bold uppercase text-[#C9A84C] hover:underline">Forgot?</Link>
+              {!usingMagicLink && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center ml-1">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Master Password</label>
+                    <Link href="#" className="text-[10px] font-bold uppercase text-[#C9A84C] hover:underline">Forgot?</Link>
+                  </div>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 transition-colors group-focus-within:text-[#C9A84C]" size={20} />
+                    <input 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl py-4 pl-12 pr-4 outline-none focus:border-[#C9A84C] transition-all text-sm font-medium"
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 transition-colors group-focus-within:text-[#C9A84C]" size={20} />
-                  <input 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full bg-[#0A0A0A] border border-zinc-800 rounded-xl py-4 pl-12 pr-4 outline-none focus:border-[#C9A84C] transition-all text-sm font-medium"
-                    required
-                  />
-                </div>
-              </div>
+              )}
 
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full text-black font-black py-4 rounded-xl active:scale-[0.98] transition-all shadow-xl flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
-                style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})` }}
-              >
-                {loading ? 'Authenticating...' : 'Sign In Now'}
-                <ArrowRight size={20} />
-              </button>
+              <div className="space-y-4">
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full text-black font-black py-4 rounded-xl active:scale-[0.98] transition-all shadow-xl flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})` }}
+                >
+                  {loading ? 'Authenticating...' : (usingMagicLink ? 'Send Magic Link' : 'Sign In Now')}
+                  <ArrowRight size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsingMagicLink(!usingMagicLink);
+                    setError(null);
+                    setSentMessage(null);
+                  }}
+                  className="w-full text-[10px] font-bold uppercase text-zinc-400 hover:text-[#C9A84C] transition-colors tracking-[0.2em]"
+                >
+                  {usingMagicLink ? '← Back to Password Login' : 'Try Logging in with Magic Link instead'}
+                </button>
+              </div>
             </form>
 
             <footer className="text-center">
