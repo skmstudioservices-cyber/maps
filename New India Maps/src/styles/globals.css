@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 
+     COLOR PALETTE: "Utility India" 
+     Focus: Trust, Legibility, and Familiarity (WhatsApp/Banking style)
+  */
+  
+  /* Brand Constants */
+  --brand-blue: 221 83% 53%;   /* #3182ce - Trust Blue */
+  --brand-green: 142 71% 45%;  /* #2f855a - WhatsApp/Success Green */
+  --brand-gold: 45 93% 47%;    /* #c9a84c - Used ONLY for verification badges */
+  
+  /* Theme Tokens - Default LIGHT for accessibility */
+  --background: 0 0% 100%;     /* Pure White for maximum contrast */
+  --foreground: 222 47% 11%;   /* Dark Blue-Gray for readability */
+  
+  --card: 0 0% 98%;            /* Very Soft Gray */
+  --card-foreground: 222 47% 11%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  
+  --primary: 221 83% 53%;      /* Trust Blue */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 210 40% 96.1%;  /* Soft UI Gray */
+  --secondary-foreground: 222 47% 11%;
+  
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222 47% 11%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221 83% 53%;
+  --radius: 0.5rem;            /* Standard, predictable radius */
+}
+
+/* Optional Dark Mode - Keeping it subtle and standard, not luxury */
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 11%;
+  --border: 217.2 32.6% 17.5%;
+  --primary: 217.2 91.2% 59.8%;
+  --secondary: 217.2 32.6% 17.5%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* 
+     UTILITY: Hero Gradient 
+     Purpose: Subtle blue glow for top sections (Light Mode friendly)
+  */
+  .hero-gradient {
+    background: radial-gradient(circle at top center, hsl(var(--brand-blue) / 0.05), transparent 70%);
+  }
+
+  /* 
+     UTILITY: Standard Card 
+     Purpose: Clear, bordered card for listings and boxes.
+  */
+  .utility-card {
+    @apply bg-white border border-slate-200 rounded-xl p-6 transition-all duration-200;
+  }
+
+  .utility-card:hover {
+    @apply border-blue-200 shadow-md;
+  }
+
+  /* 
+     UTILITY: Primary Action Button
+     Purpose: High-visibility button for registrations.
+  */
+  .btn-primary {
+    @apply bg-blue-600 text-white px-6 py-2.5 rounded-lg font-bold
+           hover:bg-blue-700 active:scale-95 transition-all shadow-sm;
+  }
+}
+
+/* Custom Utilities from Admin-V2 Mockup */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pi-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.5; filter: brightness(1.5); }
+}
