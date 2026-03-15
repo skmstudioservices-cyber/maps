@@ -1,32 +1,35 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: {
-    default: "SKM Studio Maps – Find Local Businesses in Delhi, NCR & Gorakhpur",
-    template: "%s | SKM Studio Maps",
-  },
-  description: "Discover verified local businesses across Delhi, NCR, Gorakhpur and all of India. Search restaurants, hotels, hospitals, salons and more.",
+  title: "New India Maps - Premium Business Directory",
+  description: "Discover verified local businesses across Delhi, NCR, Gorakhpur and all of India.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            try {
-              var theme = localStorage.getItem('skm-theme') || 'light';
-              document.documentElement.setAttribute('data-theme', theme);
-            } catch(e) {}
-          })();
-        ` }} />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
       </head>
-      <body>
-        {children}
+      <body style={{ 
+        margin: 0, 
+        backgroundColor: '#0f172a', 
+        fontFamily: "'DM Sans', sans-serif",
+        color: '#ffffff'
+      }}>
+        <Navbar />
+        <main style={{ minHeight: 'calc(100vh - 64px)' }}>
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );

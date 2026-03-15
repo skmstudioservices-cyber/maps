@@ -1,84 +1,178 @@
-"use client";
-import { useState } from "react";
-import Link from "next/link";
+'use client';
 
-const GOLD = "#C9A84C";
-const GOLD_DARK = "#A07830";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+
+const GOLD = "#D4AF37";
+const DARK_BG = "#0f172a";
+const DARK_CARD = "#1e293b";
 
 export default function LoginPage() {
-  const [tab, setTab] = useState<"login" | "signup">("login");
-  const [form, setForm] = useState({ email: "", password: "", name: "", phone: "" });
-  const s = { bg: "var(--bg)", bgCard: "var(--bg-card)", text: "var(--text-primary)", textSec: "var(--text-secondary)", textMuted: "var(--text-muted)", border: "var(--border)" };
-  const input = { background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 8, padding: "12px 14px", fontSize: 14, color: s.text, width: "100%", outline: "none", fontFamily: "'DM Sans', sans-serif", marginBottom: 14, display: "block" };
-  const label = { fontSize: 13, fontWeight: 600, color: s.textSec, marginBottom: 6, display: "block" };
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+  const [mode, setMode] = useState<'password' | 'magic'>('password');
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      if (mode === 'password') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        router.push('/admin');
+      } else {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: window.location.origin + '/auth/callback',
+          },
+        });
+        if (error) throw error;
+        setMessage({ type: 'success', text: 'Magic link sent! Check your inbox.' });
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Authentication failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const containerStyle: React.CSSProperties = {
+    minHeight: '100vh',
+    backgroundColor: DARK_BG,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '24px',
+    fontFamily: "'DM Sans', sans-serif",
+    color: '#ffffff'
+  };
+
+  const cardStyle: React.CSSProperties = {
+    width: '100%',
+    maxWidth: '400px',
+    backgroundColor: DARK_CARD,
+    borderRadius: '20px',
+    padding: '40px',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+    border: '1px solid rgba(255,255,255,0.1)'
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    backgroundColor: '#0f172a',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    color: '#ffffff',
+    fontSize: '16px',
+    outline: 'none',
+    marginTop: '8px',
+    boxSizing: 'border-box'
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    width: '100%',
+    backgroundColor: GOLD,
+    color: '#000000',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '14px',
+    fontSize: '16px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    marginTop: '24px',
+    transition: 'transform 0.1s, opacity 0.2s',
+  };
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: 440 }}>
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none", marginBottom: 24 }}>
-            <div style={{ width: 40, height: 40, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📍</div>
-            <div>
-              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: s.text }}>SKM Studio</span>
-              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 400, fontSize: 18, color: GOLD }}> Maps</span>
-            </div>
-          </Link>
-          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 26, fontWeight: 800, color: s.text, margin: "0 0 8px" }}>
-            {tab === "login" ? "Welcome back" : "Create account"}
+    <div style={containerStyle}>
+      <div style={cardStyle}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px', color: GOLD }}>
+            Secure Login
           </h1>
-          <p style={{ color: s.textMuted, fontSize: 14, margin: 0 }}>
-            {tab === "login" ? "Sign in to manage your listings" : "Join and start listing your business"}
+          <p style={{ color: '#94a3b8', fontSize: '14px' }}>
+            New India Maps Administration
           </p>
         </div>
 
-        <div style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 16, padding: "32px 28px" }}>
-          {/* Google SSO */}
-          <button style={{ width: "100%", background: "transparent", border: `1px solid ${s.border}`, borderRadius: 10, padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer", fontSize: 15, fontWeight: 600, color: s.text, marginBottom: 20 }}>
-            <span style={{ fontSize: 20 }}>G</span> Continue with Google
-          </button>
+        {message && (
+          <div style={{
+            padding: '12px',
+            borderRadius: '8px',
+            backgroundColor: message.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+            color: message.type === 'error' ? '#ef4444' : '#10b981',
+            fontSize: '13px',
+            marginBottom: '20px',
+            border: `1px solid ${message.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
+          }}>
+            {message.text}
+          </div>
+        )}
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <div style={{ flex: 1, height: 1, background: s.border }} />
-            <span style={{ color: s.textMuted, fontSize: 13 }}>or</span>
-            <div style={{ flex: 1, height: 1, background: s.border }} />
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>
+              Email Address
+            </label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@maps.com"
+              style={inputStyle}
+              required
+            />
           </div>
 
-          {/* Tabs */}
-          <div style={{ display: "flex", background: "var(--bg-secondary)", borderRadius: 10, padding: 4, marginBottom: 24 }}>
-            {(["login", "signup"] as const).map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px", borderRadius: 7, border: "none", cursor: "pointer", fontWeight: 600, fontSize: 14, background: tab === t ? `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})` : "transparent", color: tab === t ? "#000" : s.textMuted }}>
-                {t === "login" ? "Login" : "Sign Up"}
-              </button>
-            ))}
-          </div>
-
-          {tab === "signup" && (
-            <>
-              <label style={label}>Full Name</label>
-              <input style={input as React.CSSProperties} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Your full name" />
-              <label style={label}>Phone Number</label>
-              <input style={input as React.CSSProperties} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+91 XXXXX XXXXX" />
-            </>
+          {mode === 'password' && (
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>
+                Password
+              </label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={inputStyle}
+                required
+              />
+            </div>
           )}
-          <label style={label}>Email</label>
-          <input style={input as React.CSSProperties} type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="your@email.com" />
-          <label style={label}>Password</label>
-          <input style={input as React.CSSProperties} type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="••••••••" />
 
-          <button style={{ width: "100%", background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", border: "none", padding: "13px", borderRadius: 10, fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 4 }}>
-            {tab === "login" ? "Sign In" : "Create Account"}
+          <button type="submit" disabled={loading} style={{
+            ...buttonStyle,
+            opacity: loading ? 0.7 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}>
+            {loading ? 'Processing...' : (mode === 'password' ? 'Sign In' : 'Send Magic Link')}
           </button>
+        </form>
 
-          <p style={{ textAlign: "center", color: s.textMuted, fontSize: 13, marginTop: 16, marginBottom: 0 }}>
-            {tab === "login" ? "Don't have an account? " : "Already have an account? "}
-            <button onClick={() => setTab(tab === "login" ? "signup" : "login")} style={{ background: "none", border: "none", color: GOLD, fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
-              {tab === "login" ? "Sign up" : "Login"}
-            </button>
-          </p>
-        </div>
-
-        <div style={{ textAlign: "center", marginTop: 20, padding: "14px 20px", background: "rgba(201,168,76,0.1)", border: `1px solid ${GOLD}30`, borderRadius: 10 }}>
-          <p style={{ margin: 0, fontSize: 13, color: GOLD }}>🚀 <strong>Pre-launch:</strong> Featured listing ₹999/year — ends March 31!</p>
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <button 
+            type="button"
+            onClick={() => { setMode(mode === 'password' ? 'magic' : 'password'); setMessage(null); }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: GOLD,
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            {mode === 'password' ? 'Switch to Magic Link' : 'Switch to Password Login'}
+          </button>
         </div>
       </div>
     </div>
