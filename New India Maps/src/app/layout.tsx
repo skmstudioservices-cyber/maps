@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
-import "../styles/globals.css";
-
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-});
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "SKM Studio Maps | India's Open Local Knowledge Network",
-  description: "Connect with verified local businesses across India. Featuring real reviews, digital maps, and premium business profiles.",
-  keywords: "India Maps, Local Business Directory, Verified Businesses, SKM Studio, Digital India",
-  authors: [{ name: "SKM Studio" }],
+  title: "New India Maps - The Premium Business Directory",
+  description: "Discover verified businesses across India with ultra-precise location mapping.",
 };
 
 export default function RootLayout({
@@ -25,17 +13,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body
-        className={`${inter.variable} ${playfair.variable} font-sans bg-background text-foreground antialiased selection:bg-gold selection:text-black`}
-      >
-        {/* Main Application Container */}
-        <main id="skm-app-root">
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+      </head>
+      <body style={{ 
+        margin: 0, 
+        backgroundColor: '#0f172a', 
+        fontFamily: "'DM Sans', sans-serif" 
+      }}>
+        <Navbar />
+        <main style={{ minHeight: 'calc(100vh - 64px)' }}>
           {children}
         </main>
-        
-        {/* Placeholder for global components like Toasts or Modals */}
-        <div id="modal-root" />
+        <Footer />
       </body>
     </html>
   );
