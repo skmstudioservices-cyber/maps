@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   description: "Connect with verified local businesses across India. Featuring real reviews, digital maps, and premium business profiles.",
   keywords: "India Maps, Local Business Directory, Verified Businesses, SKM Studio, Digital India",
   authors: [{ name: "SKM Studio" }],
-  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
