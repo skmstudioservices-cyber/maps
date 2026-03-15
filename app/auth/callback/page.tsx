@@ -9,21 +9,36 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // 1. Check if there's a 'code' in the URL (typical for Magic Links/OAuth)
+      console.log('🔄 Auth Callback processing...');
+      
       const url = new URL(window.location.href);
       const code = url.searchParams.get('code');
 
       if (code) {
+        console.log('📜 Found code, exchanging for session...');
         await supabase.auth.exchangeCodeForSession(code);
       }
 
-      // 2. Now check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        router.push('/login?error=session_failed');
+        return;
+      }
+
       if (session) {
-        router.push('/admin');
+        const userEmail = session.user.email;
+        console.log('✅ Logged in as:', userEmail);
+
+        if (userEmail === 'skmstudio.services@gmail.com') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
-        router.push('/login');
+        console.warn('⚠️ No session found after callback');
+        router.push('/login?error=no_session');
       }
     };
 
