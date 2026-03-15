@@ -9,6 +9,15 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
+      // 1. Check if there's a 'code' in the URL (typical for Magic Links/OAuth)
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code);
+      }
+
+      // 2. Now check if we have a session
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
