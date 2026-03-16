@@ -1,222 +1,241 @@
-"use client";
-import { useState, useEffect } from "react";
-import Link from "next/link";
+'use client';
 
-const GOLD = "#C9A84C";
-const GOLD_LIGHT = "#E8C96A";
-const GOLD_DARK = "#A07830";
-const PRELAUNCH_END = new Date("2026-03-31T23:59:59");
-
-function useCountdown(endDate: Date) {
-  const [t, setT] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  useEffect(() => {
-    const update = () => {
-      const diff = endDate.getTime() - Date.now();
-      if (diff <= 0) return;
-      setT({ days: Math.floor(diff/86400000), hours: Math.floor((diff%86400000)/3600000), minutes: Math.floor((diff%3600000)/60000), seconds: Math.floor((diff%60000)/1000) });
-    };
-    update(); const id = setInterval(update, 1000); return () => clearInterval(id);
-  }, [endDate]);
-  return t;
-}
-
-function useDark() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => { setDark(document.documentElement.getAttribute("data-theme") === "dark"); }, []);
-  return dark;
-}
+import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function PricingPage() {
-  const countdown = useCountdown(PRELAUNCH_END);
-  const dark = useDark();
-  const s = { bg: "var(--bg)", bgSec: "var(--bg-secondary)", bgCard: "var(--bg-card)", text: "var(--text-primary)", textSec: "var(--text-secondary)", textMuted: "var(--text-muted)", border: "var(--border)" };
+  const [isAnnual, setIsAnnual] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const plans = [
-    {
-      name: "Free",
-      prelaunchPrice: "₹0",
-      regularPrice: "₹0",
-      period: "forever",
-      desc: "Get your business listed",
-      color: "#888",
-      features: ["Basic listing", "Business name & category", "Location & contact", "Community submissions", "Claim & edit anytime"],
-      cta: "List for Free",
-      href: "/add-business",
-      featured: false,
-    },
-    {
-      name: "Featured",
-      prelaunchPrice: "₹999",
-      regularPrice: "₹3,999",
-      prelaunchNote: "/year (pre-launch price)",
-      regularNote: "/month (after March 31)",
-      desc: "Get discovered faster",
-      color: GOLD,
-      features: ["Everything in Free", "⭐ Featured badge", "Top placement in search", "Verified badge", "Priority indexing", "WhatsApp & call button", "Photo gallery (5 photos)", "Business hours display"],
-      cta: "Get Featured — ₹999/year",
-      href: "/add-business?plan=featured",
-      featured: true,
-    },
-    {
-      name: "Premium",
-      prelaunchPrice: "₹4,999",
-      regularPrice: "₹4,999",
-      period: "/month",
-      desc: "Grow with analytics",
-      color: "#7C3AED",
-      features: ["Everything in Featured", "📊 Analytics dashboard", "Customer insights", "Review management", "Multiple photos (20)", "Social media links", "Custom description", "Priority support"],
-      cta: "Coming Soon",
-      href: "#",
-      featured: false,
-      comingSoon: true,
-    },
-    {
-      name: "SEO Starter",
-      prelaunchPrice: "₹15,000",
-      regularPrice: "₹15,000",
-      period: "/month",
-      desc: "Rank on Google",
-      color: "#059669",
-      features: ["Everything in Premium", "Google SEO optimization", "5 target keywords", "Monthly SEO report", "Backlink building", "Local citations"],
-      cta: "Coming Soon",
-      href: "#",
-      featured: false,
-      comingSoon: true,
-    },
-  ];
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   return (
-    <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-      {/* Nav */}
-      <nav style={{ background: dark ? "#0F0F0F" : "#fff", borderBottom: `1px solid var(--border)`, padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 34, height: 34, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>📍</div>
-          <div>
-            <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 16, color: s.text }}>SKM Studio</span>
-            <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 400, fontSize: 16, color: GOLD }}> Maps</span>
+    <>
+      <style>{`
+        :root {
+          --ink: #0a0b0f;
+          --gold: #c9a84c;
+          --gold-light: #e8c97a;
+          --gold-glow: rgba(201,168,76,0.12);
+          --card: #1a1d2e;
+          --border: rgba(255,255,255,0.07);
+          --text: #e8e9f0;
+          --muted: #8a8da0;
+          --panel: #141620;
+          --green: #2ecc8a;
+          --accent: #4f8ef7;
+        }
+
+        .pricing-hero {
+          padding: 120px 40px 80px;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+          background: var(--ink);
+        }
+
+        .hero-bg {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(201,168,76,0.07), transparent 60%);
+          pointer-events: none;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: var(--gold-glow);
+          border: 1px solid rgba(201,168,76,0.25);
+          border-radius: 100px;
+          padding: 6px 16px;
+          font-size: 13px;
+          color: var(--gold-light);
+          font-weight: 500;
+          margin-bottom: 24px;
+        }
+
+        .pricing-hero h1 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(36px, 5vw, 64px);
+          font-weight: 900;
+          line-height: 1.1;
+          color: var(--text);
+          margin-bottom: 18px;
+        }
+
+        .pricing-hero h1 span { color: var(--gold); }
+
+        .billing-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
+          margin-bottom: 56px;
+        }
+
+        .toggle-track {
+          width: 48px;
+          height: 26px;
+          background: var(--gold);
+          border-radius: 100px;
+          cursor: pointer;
+          position: relative;
+        }
+
+        .toggle-thumb {
+          width: 20px;
+          height: 20px;
+          background: white;
+          border-radius: 50%;
+          position: absolute;
+          top: 3px;
+          left: 3px;
+          transition: transform 0.3s;
+        }
+
+        .toggle-track.annual .toggle-thumb { transform: translateX(22px); }
+
+        .pricing-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 24px;
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 0 20px 80px;
+        }
+
+        .plan-card {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 22px;
+          padding: 36px 32px;
+          position: relative;
+          transition: transform 0.3s;
+        }
+
+        .plan-card:hover { transform: translateY(-4px); }
+        .plan-card.featured { border-color: rgba(201,168,76,0.4); background: linear-gradient(160deg, #1e2138, #1a1d2e); }
+
+        .plan-price { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; }
+        .currency { font-size: 22px; color: var(--gold); }
+        .period { font-size: 14px; color: var(--muted); }
+
+        .plan-btn {
+          width: 100%;
+          padding: 14px;
+          border-radius: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+          margin-top: 24px;
+        }
+
+        .plan-btn.primary { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #000; }
+        .plan-btn.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+
+        .faq-wrap { max-width: 720px; margin: 0 auto 100px; padding: 0 20px; }
+        .faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
+        .faq-q { padding: 18px 22px; cursor: pointer; display: flex; justify-content: space-between; font-weight: 500; }
+        .faq-a { padding: 0 22px 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+      `}</style>
+
+      <div className="pricing-hero">
+        <div className="hero-bg" />
+        <div className="hero-badge">💰 Transparent Pricing — No Hidden Fees</div>
+        <h1>Grow Your Business with<br /><span>SKM Studio Maps</span></h1>
+        
+        <div className="billing-toggle">
+          <span style={{ color: !isAnnual ? 'var(--text)' : 'var(--muted)' }}>Monthly</span>
+          <div 
+            className={`toggle-track ${isAnnual ? 'annual' : ''}`} 
+            onClick={() => setIsAnnual(!isAnnual)}
+          >
+            <div className="toggle-thumb" />
           </div>
-        </Link>
-        <div style={{ display: "flex", gap: 20 }}>
-          {[["Home", "/"], ["Listings", "/listings"], ["Pricing", "/pricing"]].map(([l, h]) => (
-            <Link key={l} href={h} style={{ color: s.textSec, fontSize: 14, textDecoration: "none" }}>{l}</Link>
-          ))}
-        </div>
-      </nav>
-
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 24px" }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,68,68,0.1)", border: "1px solid rgba(255,68,68,0.3)", borderRadius: 99, padding: "5px 14px", marginBottom: 20 }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#FF4444", display: "inline-block" }} />
-            <span style={{ color: "#FF8888", fontSize: 12, fontWeight: 600 }}>Pre-Launch Offer Ends 31 March 2026</span>
-          </div>
-          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: "clamp(28px,4vw,44px)", fontWeight: 800, color: s.text, margin: "0 0 16px" }}>
-            Simple, Transparent Pricing
-          </h1>
-          <p style={{ color: s.textMuted, fontSize: 16, margin: "0 0 32px" }}>
-            Lock in pre-launch pricing before March 31. Monthly prices shown — pre-launch yearly deal below.
-          </p>
-
-          {/* Countdown */}
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 16 }}>
-            {[["days", countdown.days], ["hours", countdown.hours], ["mins", countdown.minutes], ["secs", countdown.seconds]].map(([label, val]) => (
-              <div key={label as string} style={{ background: dark ? "#1A1200" : "#FFF8E8", border: `1px solid ${GOLD_DARK}`, borderRadius: 10, padding: "10px 16px", textAlign: "center", minWidth: 64 }}>
-                <div style={{ color: GOLD, fontSize: 28, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{String(val).padStart(2, "0")}</div>
-                <div style={{ color: s.textMuted, fontSize: 10, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>{label}</div>
-              </div>
-            ))}
-          </div>
-          <p style={{ color: "#FF4444", fontSize: 13, fontWeight: 600 }}>⚡ After March 31, Featured plan reverts to ₹3,999/month</p>
-        </div>
-
-        {/* Plans grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20, marginBottom: 60 }}>
-          {plans.map(plan => (
-            <div key={plan.name} style={{
-              background: s.bgCard,
-              border: `${plan.featured ? "2px" : "1px"} solid ${plan.featured ? GOLD : "var(--border)"}`,
-              borderRadius: 16, padding: "28px 24px", position: "relative",
-              boxShadow: plan.featured ? `0 0 40px rgba(201,168,76,0.15)` : "none"
-            }}>
-              {plan.featured && (
-                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", fontSize: 11, fontWeight: 700, padding: "4px 14px", borderRadius: 99, whiteSpace: "nowrap" }}>
-                  🔥 BEST VALUE — PRE-LAUNCH
-                </div>
-              )}
-              {plan.comingSoon && (
-                <div style={{ position: "absolute", top: 12, right: 12, background: "#1A1A1A", color: "#888", fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 99 }}>
-                  Coming Soon
-                </div>
-              )}
-              <div style={{ color: plan.color, fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{plan.name}</div>
-              <div style={{ marginBottom: 6 }}>
-                <span style={{ fontSize: 36, fontWeight: 800, color: plan.featured ? GOLD : s.text, fontFamily: "'Sora', sans-serif" }}>{plan.prelaunchPrice}</span>
-                {plan.featured ? (
-                  <span style={{ color: s.textMuted, fontSize: 12, marginLeft: 4 }}>{plan.prelaunchNote}</span>
-                ) : plan.period ? (
-                  <span style={{ color: s.textMuted, fontSize: 13, marginLeft: 4 }}>{plan.period}</span>
-                ) : null}
-              </div>
-              {plan.featured && (
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ color: "#FF4444", fontSize: 12, fontWeight: 600 }}>After March 31: </span>
-                  <s style={{ color: s.textMuted, fontSize: 12 }}>{plan.regularPrice}{plan.regularNote}</s>
-                </div>
-              )}
-              <p style={{ color: s.textMuted, fontSize: 13, margin: "0 0 20px" }}>{plan.desc}</p>
-              <Link href={plan.href} style={{
-                display: "block", textAlign: "center", padding: "11px 20px", borderRadius: 10, fontWeight: 700, fontSize: 14, textDecoration: "none",
-                background: plan.featured ? `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})` : "transparent",
-                color: plan.featured ? "#000" : plan.comingSoon ? s.textMuted : s.text,
-                border: plan.featured ? "none" : `1px solid var(--border)`,
-                cursor: plan.comingSoon ? "default" : "pointer",
-                marginBottom: 20,
-                opacity: plan.comingSoon ? 0.6 : 1,
-              }}>
-                {plan.cta}
-              </Link>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {plan.features.map(f => (
-                  <div key={f} style={{ display: "flex", gap: 8, fontSize: 13, color: s.textSec }}>
-                    <span style={{ color: plan.featured ? GOLD : "#10B981", flexShrink: 0 }}>✓</span>
-                    {f}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* SEO plans teaser */}
-        <div style={{ background: s.bgCard, border: `1px solid var(--border)`, borderRadius: 16, padding: "28px 24px", marginBottom: 40, textAlign: "center" }}>
-          <h3 style={{ color: s.text, fontFamily: "'Sora', sans-serif", margin: "0 0 8px" }}>🚀 SEO Growth Plans — Coming Soon</h3>
-          <p style={{ color: s.textMuted, fontSize: 14, margin: "0 0 16px" }}>Advanced SEO packages to rank your business on Google</p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
-            {[["SEO Starter", "₹15,000/mo"], ["SEO Pro", "₹30,000/mo"], ["SEO Enterprise", "₹75,000/mo"]].map(([name, price]) => (
-              <div key={name} style={{ background: s.bgSec, borderRadius: 10, padding: "12px 24px", border: `1px solid var(--border)` }}>
-                <div style={{ fontWeight: 600, color: s.text, fontSize: 14 }}>{name}</div>
-                <div style={{ color: GOLD, fontSize: 13, fontWeight: 700 }}>{price}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* FAQ */}
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: s.text, marginBottom: 24, textAlign: "center" }}>Frequently Asked Questions</h2>
-          {[
-            ["What is the pre-launch price?", "During pre-launch (before March 31, 2026), the Featured plan is available at ₹999/year instead of the regular ₹3,999/month. That's paying once for the entire year at less than the cost of a single month."],
-            ["Do I need to pay upfront?", "Yes — our sales team will collect payment and manually activate your Featured listing. No online payment gateway required right now."],
-            ["Can someone else list my business?", "Yes! Anyone can submit a business listing. Only Business Name, Category, and Location are required. As the owner, you can claim and update it anytime."],
-            ["When will analytics be available?", "Analytics dashboard is coming soon in the Premium plan. Pre-launch Featured customers will get early access at no extra charge."],
-          ].map(([q, a]) => (
-            <div key={q as string} style={{ borderBottom: `1px solid var(--border)`, padding: "16px 0" }}>
-              <div style={{ fontWeight: 600, color: s.text, marginBottom: 8 }}>{q}</div>
-              <div style={{ color: s.textMuted, fontSize: 14, lineHeight: 1.6 }}>{a}</div>
-            </div>
-          ))}
+          <span style={{ color: isAnnual ? 'var(--text)' : 'var(--muted)' }}>Annual</span>
+          <span style={{ background: 'rgba(46,204,138,0.1)', color: 'var(--green)', padding: '2px 8px', borderRadius: 99, fontSize: 12 }}>Save 20%</span>
         </div>
       </div>
-    </div>
+
+      <div className="pricing-grid">
+        <div className="plan-card">
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 14 }}>STARTER</div>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, marginBottom: 8 }}>Free</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 24 }}>Essential visibility for every business.</p>
+          <div className="plan-price">
+            <span className="currency">₹</span>0<span className="period">/ month</span>
+          </div>
+          <div style={{ height: 1, background: 'var(--border)', margin: '24px 0' }} />
+          <ul style={{ listStyle: 'none', padding: 0, fontSize: 13, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <li>✓ Business name & contact</li>
+            <li>✓ Category & city listing</li>
+            <li>✓ 3 business photos</li>
+            <li>✓ Listing URL</li>
+          </ul>
+          <Link href="/add-business">
+            <button className="plan-btn secondary">Get Started Free</button>
+          </Link>
+        </div>
+
+        <div className="plan-card featured">
+          <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: '#000', fontSize: 10, fontWeight: 800, padding: '4px 12px', borderRadius: 99 }}>MOST POPULAR</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 14, color: 'var(--gold)' }}>FEATURED</div>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, marginBottom: 8 }}>Featured</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 24 }}>Top placement & premium features.</p>
+          <div className="plan-price">
+            <span className="currency">₹</span>{isAnnual ? '799' : '999'}<span className="period">/ month</span>
+          </div>
+          <div style={{ height: 1, background: 'var(--border)', margin: '24px 0' }} />
+          <ul style={{ listStyle: 'none', padding: 0, fontSize: 13, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <li>✓ Everything in Free</li>
+            <li>✓ <strong>⭐ Featured badge</strong></li>
+            <li>✓ Top of search results</li>
+            <li>✓ WhatsApp enquiry button</li>
+            <li>✓ Monthly analytics</li>
+          </ul>
+          <Link href="/add-business?plan=featured">
+            <button className="plan-btn primary">Start Featured Listing</button>
+          </Link>
+        </div>
+
+        <div className="plan-card">
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 14, color: 'var(--accent)' }}>PREMIUM + SEO</div>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, marginBottom: 8 }}>Premium</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 24 }}>Maximum Google visibility.</p>
+          <div className="plan-price">
+            <span className="currency">₹</span>{isAnnual ? '1,999' : '2,499'}<span className="period">/ month</span>
+          </div>
+          <div style={{ height: 1, background: 'var(--border)', margin: '24px 0' }} />
+          <ul style={{ listStyle: 'none', padding: 0, fontSize: 13, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <li>✓ Everything in Featured</li>
+            <li>✓ <strong>SEO keyword targeting</strong></li>
+            <li>✓ Rank on Google Page 1</li>
+            <li>✓ Specialized analytics</li>
+          </ul>
+          <Link href="/add-business?plan=premium">
+            <button className="plan-btn secondary">Go Premium</button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="faq-wrap">
+        <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', fontSize: 36, marginBottom: 40 }}>Frequently Asked Questions</h2>
+        {[
+          ["What is the pre-launch price?", "During pre-launch, the Featured plan is available at ₹999/year instead of the regular ₹3,999/month. Lock it in today!"],
+          ["How does lead diversion work?", "On Premium plans, we divert search traffic from competitors directly to your listing via targeted SEO."],
+          ["Can I cancel anytime?", "Yes, monthly plans can be canceled anytime. Annual plans offer deep discounts for long-term commitment."]
+        ].map(([q, a], i) => (
+          <div key={i} className="faq-item">
+            <div className="faq-q" onClick={() => toggleFaq(i)}>
+              {q} <span>{openFaq === i ? '-' : '+'}</span>
+            </div>
+            {openFaq === i && <div className="faq-a">{a}</div>}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

@@ -152,24 +152,6 @@ export default function AdminPage() {
   return (
     <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* ─── TOP NAVIGATION BAR ─── */}
-      <nav style={{ background: "#0A0A0A", borderBottom: "1px solid #1A1A1A", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>📍</div>
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: "#F5F0E8" }}>
-            SKM Studio <span style={{ color: GOLD }}>Maps</span>
-          </span>
-          <span style={{ background: "#1A1A1A", color: GOLD, fontSize: 11, padding: "2px 10px", borderRadius: 4, fontWeight: 700, border: `1px solid ${GOLD}30` }}>
-            ADMIN
-          </span>
-        </div>
-        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <span style={{ color: "#555", fontSize: 12 }}>{ADMIN_EMAIL}</span>
-          <Link href="/" style={{ color: "#666", fontSize: 13, textDecoration: "none" }}>🔗 View Site</Link>
-          <Link href="/login" style={{ color: "#666", fontSize: 13, textDecoration: "none" }}>→ Logout</Link>
-        </div>
-      </nav>
-
       {/* ─── STATS ROW ─── */}
       <div style={{ background: "#111", borderBottom: "1px solid #1A1A1A", padding: "20px 32px", display: "flex", gap: 16, flexWrap: "wrap" }}>
         {[

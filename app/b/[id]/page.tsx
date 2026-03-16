@@ -34,13 +34,8 @@ export default function BusinessPage({ params }: { params: Promise<{ id: string 
   const today = days[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
 
   return (
-    <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-      <nav style={{ background: s.bgCard, borderBottom: `1px solid ${s.border}`, padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>📍</div>
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: s.text }}>SKM Studio <span style={{ color: GOLD }}>Maps</span></span>
-        </Link>
-      </nav>
+    <div style={{ minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+
 
       {/* Breadcrumb */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "12px 24px 0" }}>

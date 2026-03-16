@@ -62,14 +62,8 @@ export default function AddBusinessPage() {
   }
 
   return (
-    <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-      <nav style={{ background: s.bgCard, borderBottom: `1px solid ${s.border}`, padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>📍</div>
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: s.text }}>SKM Studio <span style={{ color: GOLD }}>Maps</span></span>
-        </Link>
-        <Link href="/pricing" style={{ color: GOLD, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>⚡ Pre-launch: ₹999/year →</Link>
-      </nav>
+    <div style={{ minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "40px 24px" }}>
         {/* Progress */}

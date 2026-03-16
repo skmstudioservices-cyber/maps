@@ -40,16 +40,8 @@ export default function ListingsPage() {
   }).sort((a, b) => sort === "rating" ? b.rating - a.rating : sort === "reviews" ? b.reviews - a.reviews : (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
   return (
-    <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-      <nav style={{ background: s.bgCard, borderBottom: `1px solid ${s.border}`, padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>📍</div>
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: s.text }}>SKM Studio <span style={{ color: GOLD }}>Maps</span></span>
-        </Link>
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <Link href="/add-business" style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", fontSize: 13, fontWeight: 700, padding: "8px 14px", borderRadius: 8, textDecoration: "none" }}>+ List Business</Link>
-        </div>
-      </nav>
+    <div style={{ minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+
 
       {/* Search bar */}
       <div style={{ background: s.bgCard, borderBottom: `1px solid ${s.border}`, padding: "16px 24px" }}>
