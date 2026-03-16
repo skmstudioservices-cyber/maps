@@ -5,6 +5,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// Alias for compatibility with lib/data.ts
+export const getSupabase = () => supabase
+
 export type Business = {
   id: string
   name: string
@@ -39,4 +42,19 @@ export type Profile = {
   full_name: string | null
   role: 'super_admin' | 'moderator' | 'owner' | 'contributor' | 'visitor'
   updated_at: string
+}
+
+export type Category = {
+  id: string
+  name: string
+  slug: string
+  icon?: string | null
+  description?: string | null
+}
+
+export type City = {
+  id: string
+  name: string
+  slug: string
+  state_id?: string
 }
