@@ -1,148 +1,195 @@
-"use client";
-import { useState } from "react";
-import Link from "next/link";
-
-const GOLD = "#C9A84C";
-const GOLD_DARK = "#A07830";
-
-const BUSINESSES = [
-  { id: 1, name: "The Grand Kitchen", cat: "Restaurants", city: "Delhi", area: "Connaught Place", rating: 4.8, reviews: 234, price: "$$$", initials: "GK", color: "#DC2626", bg: "#2D0A0A", desc: "Award-winning multi-cuisine restaurant with a global menu", verified: true, featured: true, open: true },
-  { id: 2, name: "Apollo Hospital", cat: "Hospitals", city: "Delhi", area: "Sarita Vihar", rating: 4.9, reviews: 890, price: "$$$$", initials: "AH", color: "#059669", bg: "#0A2D1A", desc: "Leading multi-specialty hospital with 500+ specialists", verified: true, featured: true, open: true },
-  { id: 3, name: "Hotel Leela Palace", cat: "Hotels", city: "New Delhi", area: "Chanakyapuri", rating: 4.7, reviews: 567, price: "$$$$", initials: "LP", color: "#C9A84C", bg: "#1A1200", desc: "5-star luxury palace hotel with world-class amenities", verified: true, featured: true, open: true },
-  { id: 4, name: "PhoenixMarketCity", cat: "Shopping", city: "Delhi", area: "Navi Mumbai Road", rating: 4.5, reviews: 1203, price: "$$$", initials: "PM", color: "#7C3AED", bg: "#180A2D", desc: "Premier shopping mall with 300+ retail brands", verified: true, featured: true, open: true },
-  { id: 5, name: "Gold's Gym", cat: "Fitness", city: "Gurgaon", area: "Sector 14", rating: 4.6, reviews: 345, price: "$$", initials: "GG", color: "#0891B2", bg: "#0A1A2D", desc: "World-class gym with certified personal trainers", verified: true, featured: false, open: true },
-  { id: 6, name: "Luxe Salon & Spa", cat: "Beauty & Spa", city: "Delhi", area: "Lajpat Nagar", rating: 4.4, reviews: 178, price: "$$$", initials: "LS", color: "#9333EA", bg: "#180A2D", desc: "Premium unisex salon with luxury spa treatments", verified: true, featured: false, open: true },
-  { id: 7, name: "AutoZone Service", cat: "Auto Services", city: "Noida", area: "Sector 62", rating: 4.1, reviews: 73, price: "$$", initials: "AU", color: "#DB2777", bg: "#2D0A1A", desc: "Complete auto repair for all major car brands", verified: true, featured: false, open: false },
-  { id: 8, name: "DLF Cyber City", cat: "Real Estate", city: "Gurgaon", area: "DLF Phase 2", rating: 4.3, reviews: 289, price: "$$$$", initials: "DC", color: "#4F46E5", bg: "#0A0A2D", desc: "Premium office and residential spaces", verified: true, featured: false, open: true },
-  { id: 9, name: "Spice Route", cat: "Restaurants", city: "Gorakhpur", area: "Main Market", rating: 4.3, reviews: 95, price: "$$", initials: "SR", color: "#EA580C", bg: "#2D1200", desc: "Authentic North Indian cuisine with heritage recipes", verified: false, featured: false, open: true },
-  { id: 10, name: "City Hospital", cat: "Hospitals", city: "Gorakhpur", area: "Civil Lines", rating: 4.2, reviews: 156, price: "$$$", initials: "CH", color: "#059669", bg: "#0A2D1A", desc: "Multi-specialty hospital serving Gorakhpur since 1992", verified: true, featured: false, open: true },
-  { id: 11, name: "QuickFix Home Services", cat: "Home Services", city: "Noida", area: "Sector 18", rating: 4.0, reviews: 215, price: "$", initials: "QF", color: "#D97706", bg: "#2D1A0A", desc: "One-stop home repair and maintenance services", verified: true, featured: false, open: true },
-  { id: 12, name: "IIM Delhi", cat: "Education", city: "Delhi", area: "Vasant Kunj", rating: 4.9, reviews: 445, price: "$$$$", initials: "ID", color: "#0EA5E9", bg: "#0A1A2D", desc: "Top-ranked management institute with MBA programs", verified: true, featured: false, open: true },
-];
-
-const CATEGORIES = ["All", "Restaurants", "Hotels", "Hospitals", "Beauty & Spa", "Auto Services", "Education", "Finance", "Fitness", "Home Services", "Legal", "Real Estate", "Shopping"];
-const CITIES = ["All Cities", "Delhi", "New Delhi", "Noida", "Gurgaon", "Gorakhpur", "Faridabad", "Ghaziabad"];
+'use client'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { supabase, type Business } from '@/lib/supabase'
 
 export default function ListingsPage() {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [city, setCity] = useState("All Cities");
-  const [sort, setSort] = useState("relevance");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [businesses, setBusinesses] = useState<Business[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [selectedCity, setSelectedCity] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
 
-  const s = { bg: "var(--bg)", bgSec: "var(--bg-secondary)", bgCard: "var(--bg-card)", text: "var(--text-primary)", textSec: "var(--text-secondary)", textMuted: "var(--text-muted)", border: "var(--border)" };
+  const cities = ['New Delhi', 'South Delhi', 'Civil Lines', 'Dwarka', 'Laxmi Nagar', 'Noida', 'Greater Noida', 'Gurugram', 'Faridabad', 'Gorakhpur']
+  const categories = ['Restaurants', 'Hotels', 'Hospitals', 'Shopping', 'Education', 'Finance', 'Fitness', 'Legal', 'Real Estate', 'Home Services', 'Beauty & Spa', 'Auto Services']
 
-  const filtered = BUSINESSES.filter(b => {
-    const mSearch = !search || b.name.toLowerCase().includes(search.toLowerCase()) || b.desc.toLowerCase().includes(search.toLowerCase());
-    const mCat = category === "All" || b.cat === category;
-    const mCity = city === "All Cities" || b.city === city;
-    return mSearch && mCat && mCity;
-  }).sort((a, b) => sort === "rating" ? b.rating - a.rating : sort === "reviews" ? b.reviews - a.reviews : (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  useEffect(() => {
+    fetchBusinesses()
+  }, [search, selectedCity, selectedCategory])
+
+  const fetchBusinesses = async () => {
+    setLoading(true)
+    let query = supabase
+      .from('businesses')
+      .select(`
+        id, name, slug, description, avg_rating, review_count,
+        plan, status, phone, address, price_range, is_verified, is_featured,
+        cities!city_id (name, slug),
+        categories!category_id (name, slug)
+      `)
+      .eq('status', 'active')
+      .order('plan', { ascending: false })
+      .order('avg_rating', { ascending: false })
+      .limit(40)
+
+    if (search) query = query.ilike('name', `%${search}%`)
+    if (selectedCity) query = query.eq('cities.name', selectedCity)
+    if (selectedCategory) query = query.eq('categories.name', selectedCategory)
+
+    const { data, error } = await query
+    if (!error && data) {
+      const mapped = data.map((b: any) => ({
+        ...b,
+        city_name: b.cities?.name,
+        city_slug: b.cities?.slug,
+        category_name: b.categories?.name,
+        category_slug: b.categories?.slug,
+      }))
+      setBusinesses(mapped)
+    }
+    setLoading(false)
+  }
+
+  const stars = (rating: number) => {
+    const full = Math.floor(rating)
+    return '★'.repeat(full) + '☆'.repeat(5 - full)
+  }
+
+  const priceColor = (p: string | null) => p === '$$$$' ? '#f59e0b' : p === '$$$' ? '#C9A84C' : '#22c55e'
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#0A0B0F', fontFamily: "'DM Sans', sans-serif", paddingTop: 68 }}>
 
+      {/* Search Header */}
+      <div style={{ background: 'linear-gradient(135deg, #0A0B0F, #141620)', padding: '40px 24px 32px', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <h1 style={{ color: '#e8e9f0', fontSize: 28, fontWeight: 800, margin: '0 0 20px', fontFamily: "'Playfair Display', Georgia, serif" }}>
+            Browse Businesses <span style={{ color: '#C9A84C' }}>in India</span>
+          </h1>
 
-      {/* Search bar */}
-      <div style={{ background: s.bgCard, borderBottom: `1px solid ${s.border}`, padding: "16px 24px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 200, display: "flex", alignItems: "center", background: s.bgSec, borderRadius: 8, padding: "0 14px", gap: 8, border: `1px solid ${s.border}` }}>
-              <span style={{ color: s.textMuted }}>🔍</span>
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search businesses..." style={{ flex: 1, border: "none", background: "none", padding: "10px 0", fontSize: 14, outline: "none", color: s.text }} />
-            </div>
-            <select value={city} onChange={e => setCity(e.target.value)} style={{ padding: "10px 14px", border: `1px solid ${s.border}`, borderRadius: 8, fontSize: 14, background: s.bgCard, color: s.text, cursor: "pointer" }}>
-              {CITIES.map(c => <option key={c}>{c}</option>)}
-            </select>
-            <select value={sort} onChange={e => setSort(e.target.value)} style={{ padding: "10px 14px", border: `1px solid ${s.border}`, borderRadius: 8, fontSize: 14, background: s.bgCard, color: s.text, cursor: "pointer" }}>
-              <option value="relevance">Relevance</option>
-              <option value="rating">Highest Rated</option>
-              <option value="reviews">Most Reviews</option>
-            </select>
-            <div style={{ display: "flex", gap: 4 }}>
-              {(["grid", "list"] as const).map(v => (
-                <button key={v} onClick={() => setViewMode(v)} style={{ padding: "10px 12px", border: `1px solid ${viewMode === v ? GOLD : s.border}`, borderRadius: 8, cursor: "pointer", background: viewMode === v ? `rgba(201,168,76,0.1)` : s.bgCard, color: viewMode === v ? GOLD : s.textMuted, fontSize: 16 }}>
-                  {v === "grid" ? "⊞" : "☰"}
-                </button>
-              ))}
-            </div>
+          {/* Search Bar */}
+          <div style={{ display: 'flex', background: '#fff', borderRadius: 12, overflow: 'hidden', border: '2px solid #A07830', marginBottom: 14 }}>
+            <span style={{ padding: '0 16px', color: '#888', display: 'flex', alignItems: 'center', fontSize: 18 }}>🔍</span>
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search businesses by name..."
+              style={{ flex: 1, border: 'none', padding: '14px 0', fontSize: 15, outline: 'none', color: '#333', fontFamily: "'DM Sans', sans-serif" }}
+            />
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {CATEGORIES.map(c => (
-              <button key={c} onClick={() => setCategory(c)} style={{ background: c === category ? `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})` : s.bgSec, color: c === category ? "#000" : s.textMuted, border: `1px solid ${c === category ? GOLD : s.border}`, padding: "5px 14px", borderRadius: 99, fontSize: 13, cursor: "pointer", fontWeight: c === category ? 700 : 400 }}>
-                {c}
+
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)} style={{
+              background: '#141620', border: '1px solid rgba(201,168,76,0.3)', color: '#e8e9f0',
+              padding: '8px 14px', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif"
+            }}>
+              <option value="">All Cities</option>
+              {cities.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={{
+              background: '#141620', border: '1px solid rgba(201,168,76,0.3)', color: '#e8e9f0',
+              padding: '8px 14px', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif"
+            }}>
+              <option value="">All Categories</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            {(selectedCity || selectedCategory || search) && (
+              <button onClick={() => { setSearch(''); setSelectedCity(''); setSelectedCategory('') }} style={{
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+                color: '#ef4444', padding: '8px 14px', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif"
+              }}>
+                ✕ Clear Filters
               </button>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ color: s.textMuted, fontSize: 14 }}>Showing {filtered.length} of {BUSINESSES.length} businesses</span>
-          <Link href="/add-business" style={{ color: GOLD, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>Can't find your business? Add it →</Link>
-        </div>
-
-        {viewMode === "grid" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
-            {filtered.map(biz => (
-              <Link key={biz.id} href={`/b/${biz.id}`} style={{ textDecoration: "none" }}>
-                <div style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer" }}>
-                  <div style={{ background: biz.bg, height: 100, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                    <div style={{ position: "absolute", top: 8, left: 8, display: "flex", gap: 6 }}>
-                      {biz.verified && <span style={{ background: "#0D2B1F", border: "1px solid #10B98140", color: "#10B981", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99 }}>✓ Verified</span>}
-                    </div>
-                    {biz.featured && <div style={{ position: "absolute", top: 8, right: 8 }}><span style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>⭐ Featured</span></div>}
-                    <div style={{ width: 56, height: 56, borderRadius: 14, background: biz.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 16 }}>{biz.initials}</div>
-                  </div>
-                  <div style={{ padding: "14px 16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: s.text }}>{biz.name}</span>
-                      <span style={{ color: GOLD, fontSize: 13 }}>{biz.price}</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      <span style={{ color: "#F59E0B", fontSize: 13 }}>{"★".repeat(Math.floor(biz.rating))}{"☆".repeat(5 - Math.floor(biz.rating))}</span>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: s.text }}>{biz.rating}</span>
-                      <span style={{ color: s.textMuted, fontSize: 12 }}>({biz.reviews})</span>
-                    </div>
-                    <p style={{ color: s.textMuted, fontSize: 13, margin: "0 0 10px", lineHeight: 1.4 }}>{biz.desc}</p>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <span style={{ background: "rgba(201,168,76,0.1)", border: `1px solid ${GOLD}30`, color: GOLD, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99 }}>{biz.cat}</span>
-                      <span style={{ background: biz.open ? "#0D2B1F" : "#2D0A0A", border: `1px solid ${biz.open ? "#10B98130" : "#EF444430"}`, color: biz.open ? "#10B981" : "#EF4444", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99 }}>
-                        {biz.open ? "● Open" : "● Closed"}
-                      </span>
-                      <span style={{ color: s.textMuted, fontSize: 11, padding: "2px 4px" }}>📍 {biz.city}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+      {/* Results */}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: '#C9A84C' }}>Loading businesses...</div>
+        ) : businesses.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+            <p style={{ color: '#8a8da0', fontSize: 16 }}>No businesses found. Try different search terms.</p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {filtered.map(biz => (
-              <Link key={biz.id} href={`/b/${biz.id}`} style={{ textDecoration: "none" }}>
-                <div style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 12, padding: "16px", display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 12, background: biz.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>{biz.initials}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: s.text }}>{biz.name}</span>
-                      <span style={{ color: GOLD, fontSize: 13 }}>{biz.price}</span>
+          <>
+            <p style={{ color: '#8a8da0', fontSize: 14, marginBottom: 20 }}>
+              Showing <strong style={{ color: '#C9A84C' }}>{businesses.length}</strong> businesses
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+              {businesses.map(b => (
+                <Link key={b.id} href={`/b/${b.slug}`} style={{ textDecoration: 'none' }}>
+                  <div style={{
+                    background: '#141620', border: `1px solid ${b.is_featured ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                    borderRadius: 14, overflow: 'hidden', transition: 'all 0.2s', cursor: 'pointer',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 30px rgba(201,168,76,0.1)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+                  >
+                    {/* Card Header */}
+                    <div style={{ height: 80, background: '#1a1f2e', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                      {b.is_featured && (
+                        <span style={{ position: 'absolute', top: 8, right: 8, background: 'linear-gradient(135deg, #C9A84C, #E8C97A)', color: '#000', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>
+                          ⭐ Featured
+                        </span>
+                      )}
+                      {b.is_verified && (
+                        <span style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 99 }}>
+                          ✓ Verified
+                        </span>
+                      )}
+                      <div style={{
+                        width: 52, height: 52, borderRadius: 12,
+                        background: `hsl(${b.name.charCodeAt(0) * 7 % 360}, 60%, 40%)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontWeight: 800, fontSize: 18,
+                      }}>
+                        {b.name.charAt(0)}
+                      </div>
                     </div>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center", margin: "4px 0" }}>
-                      <span style={{ color: "#F59E0B", fontSize: 12 }}>{"★".repeat(Math.floor(biz.rating))}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: s.text }}>{biz.rating}</span>
-                      <span style={{ fontSize: 12, color: s.textMuted }}>({biz.reviews})</span>
-                      <span style={{ color: s.textMuted, fontSize: 12 }}>· 📍 {biz.area}, {biz.city}</span>
+
+                    {/* Card Body */}
+                    <div style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                        <span style={{ fontWeight: 700, fontSize: 15, color: '#e8e9f0', lineHeight: 1.3 }}>{b.name}</span>
+                        {b.price_range && (
+                          <span style={{ color: priceColor(b.price_range), fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>{b.price_range}</span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <span style={{ color: '#f59e0b', fontSize: 12 }}>{stars(Number(b.avg_rating))}</span>
+                        <span style={{ fontWeight: 700, fontSize: 13, color: '#e8e9f0' }}>{Number(b.avg_rating).toFixed(1)}</span>
+                        <span style={{ color: '#8a8da0', fontSize: 12 }}>({b.review_count?.toLocaleString()})</span>
+                      </div>
+
+                      {b.description && (
+                        <p style={{ color: '#8a8da0', fontSize: 12, margin: '0 0 10px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {b.description}
+                        </p>
+                      )}
+
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {b.category_name && (
+                          <span style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', color: '#C9A84C', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99 }}>
+                            {b.category_name}
+                          </span>
+                        )}
+                        {b.city_name && (
+                          <span style={{ color: '#8a8da0', fontSize: 11, padding: '2px 4px' }}>📍 {b.city_name}</span>
+                        )}
+                      </div>
                     </div>
-                    <p style={{ margin: "4px 0 0", color: s.textMuted, fontSize: 13 }}>{biz.desc}</p>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
-  );
+  )
 }

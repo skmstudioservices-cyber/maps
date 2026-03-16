@@ -1,77 +1,41 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+'use client'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export default function AuthCallback() {
-  const router = useRouter();
+  const [status, setStatus] = useState('Signing you in...')
 
   useEffect(() => {
-    const handleCallback = async () => {
-      console.log('🔄 Auth Callback processing...');
-      
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get('code');
-
-      if (code) {
-        console.log('📜 Found code, exchanging for session...');
-        await supabase.auth.exchangeCodeForSession(code);
-      }
-
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('❌ Session error:', sessionError);
-        router.push('/login?error=session_failed');
-        return;
-      }
-
-      if (session) {
-        const userEmail = session.user.email;
-        console.log('✅ Logged in as:', userEmail);
-
-        if (userEmail === 'skmstudio.services@gmail.com') {
-          router.push('/admin');
-        } else {
-          router.push('/dashboard');
-        }
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        setStatus('Authentication failed. Redirecting...')
+        setTimeout(() => { window.location.href = '/login' }, 2000)
+      } else if (data.session) {
+        setStatus('Success! Redirecting to dashboard...')
+        setTimeout(() => { window.location.href = '/dashboard' }, 1000)
       } else {
-        console.warn('⚠️ No session found after callback');
-        router.push('/login?error=no_session');
+        setStatus('No session found. Redirecting...')
+        setTimeout(() => { window.location.href = '/login' }, 2000)
       }
-    };
-
-    handleCallback();
-  }, [router]);
+    })
+  }, [])
 
   return (
     <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0f172a',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#ffffff',
-      fontFamily: 'sans-serif'
+      minHeight: '100vh', background: '#0A0B0F',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 20,
+      fontFamily: "'DM Sans', sans-serif"
     }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid rgba(255,255,255,0.1)',
-          borderTopColor: '#D4AF37',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 16px'
-        }} />
-        <p style={{ fontSize: '14px', fontWeight: '500' }}>Completing secure login...</p>
-      </div>
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <div style={{
+        width: 48, height: 48,
+        border: '3px solid rgba(201,168,76,0.3)',
+        borderTopColor: '#C9A84C',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite'
+      }} />
+      <p style={{ color: '#C9A84C', fontSize: 16, fontWeight: 500 }}>{status}</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
-  );
+  )
 }
