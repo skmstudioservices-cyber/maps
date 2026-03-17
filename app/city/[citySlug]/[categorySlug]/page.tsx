@@ -1,104 +1,105 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getCityBySlug, getCategoryBySlug, getBusinessesByCityAndCategory } from "../../../../lib/data";
-import DynamicBusinessMap from "../../../../components/DynamicBusinessMap";
+import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ citySlug: string; categorySlug: string }>;
-}) {
-  const { citySlug, categorySlug } = await params;
-  const [city, category] = await Promise.all([
-    getCityBySlug(citySlug),
-    getCategoryBySlug(categorySlug),
-  ]);
-  if (!city || !category) return { title: "Category" };
+interface Props { params: Promise<{ citySlug: string; categorySlug: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { citySlug, categorySlug } = await params
+  const city = citySlug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())
+  const cat  = categorySlug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())
   return {
-    title: `${category.name} in ${city.name}`,
-    description: `Find ${category.name} in ${city.name}. View on map and contact businesses.`,
-  };
+    title: `Best ${cat} in ${city} | Near Me | SKM Studio Maps`,
+    description: `Top-rated ${cat.toLowerCase()} in ${city}. Find verified ${cat.toLowerCase()} near you with contact details, directions, opening hours and reviews.`,
+    keywords: [`${cat.toLowerCase()} in ${city}`, `best ${cat.toLowerCase()} ${city}`, `${cat.toLowerCase()} near me ${city}`, `${city} ${cat.toLowerCase()} list`],
+  }
 }
 
-export default async function CityCategoryPage({
-  params,
-}: {
-  params: Promise<{ citySlug: string; categorySlug: string }>;
-}) {
-  const { citySlug, categorySlug } = await params;
-  const [city, category] = await Promise.all([
-    getCityBySlug(citySlug),
-    getCategoryBySlug(categorySlug),
-  ]);
-  if (!city || !category) notFound();
-  const businesses = await getBusinessesByCityAndCategory(city.id, category.id);
-  const featured = businesses.filter((b) => b.is_featured);
-  const rest = businesses.filter((b) => !b.is_featured);
+export default async function CityCategoryPage({ params }: Props) {
+  const { citySlug, categorySlug } = await params
+  const city = citySlug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())
+  const cat  = categorySlug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())
+
+  const [{ data: cityData }, { data: catData }] = await Promise.all([
+    supabase.from('cities').select('id,name').ilike('name',city).limit(1).single(),
+    supabase.from('categories').select('id,name,slug,icon,description').ilike('name',cat).limit(1).single(),
+  ])
+
+  const { data: businesses } = (cityData && catData)
+    ? await supabase.from('businesses').select('id,name,avg_rating,review_count,plan,is_verified,address,phone,latitude,longitude').eq('city_id',cityData.id).eq('category_id',catData.id).eq('status','active').order('avg_rating',{ascending:false}).limit(50)
+    : { data: [] }
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Best ${cat} in ${city}`,
+    url: `https://maps-sooty-phi.vercel.app/city/${citySlug}/${categorySlug}`,
+    numberOfItems: businesses?.length||0,
+    itemListElement: (businesses||[]).slice(0,10).map((b:any,i:number)=>({
+      '@type': 'ListItem', position: i+1,
+      item: {
+        '@type': 'LocalBusiness',
+        name: b.name,
+        telephone: b.phone,
+        address: { '@type': 'PostalAddress', addressLocality: city, addressCountry:'IN' },
+        ...(b.latitude && { geo: { '@type':'GeoCoordinates', latitude: b.latitude, longitude: b.longitude } }),
+        aggregateRating: b.avg_rating>0 ? { '@type':'AggregateRating', ratingValue:b.avg_rating, reviewCount:b.review_count||1 } : undefined
+      }
+    }))
+  }
+
+  const G = '#C9A84C'
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <nav className="text-sm text-zinc-500">
-        <Link href="/" className="hover:text-zinc-700">Home</Link>
-        <span className="mx-1">/</span>
-        <Link href={`/city/${city.slug}`} className="hover:text-zinc-700">{city.name}</Link>
-        <span className="mx-1">/</span>
-        <span className="text-zinc-900">{category.name}</span>
-      </nav>
-      <h1 className="mt-2 text-2xl font-bold text-zinc-900">{category.name} in {city.name}</h1>
-
-      <div className="mt-6 h-80 w-full overflow-hidden rounded-xl border border-zinc-200">
-        <DynamicBusinessMap
-          businesses={businesses}
-          center={city.lat && city.lng ? [city.lat, city.lng] : undefined}
-          zoom={12}
-        />
-      </div>
-
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-zinc-900">Listings</h2>
-        <ul className="mt-3 space-y-2">
-          {featured.map((b) => (
-            <li key={b.id}>
-              <Link
-                href={`/b/${b.slug}`}
-                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-3 hover:border-blue-200"
-              >
-                <span className="font-medium text-zinc-900">{b.name}</span>
-                {b.is_featured && (
-                  <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                    Featured
-                  </span>
-                )}
-              </Link>
-            </li>
-          ))}
-          {rest.map((b) => (
-            <li key={b.id}>
-              <Link
-                href={`/b/${b.slug}`}
-                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-3 hover:border-blue-200"
-              >
-                <span className="font-medium text-zinc-900">{b.name}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        {businesses.length === 0 && (
-          <p className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-zinc-500">
-            No businesses listed yet in this category. List your business to get featured.
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <div style={{minHeight:'100vh',background:'#0A0B0F',fontFamily:"'DM Sans',sans-serif",paddingTop:68}}>
+        <div style={{maxWidth:1100,margin:'0 auto',padding:'40px 20px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+            <Link href="/" style={{color:'#475569',fontSize:13,textDecoration:'none'}}>Home</Link>
+            <span style={{color:'#475569'}}>›</span>
+            <Link href={`/city/${citySlug}`} style={{color:'#475569',fontSize:13,textDecoration:'none'}}>{city}</Link>
+            <span style={{color:'#475569'}}>›</span>
+            <span style={{color:G,fontSize:13,fontWeight:600}}>{cat}</span>
+          </div>
+          <h1 style={{color:'#e8e9f0',fontSize:30,fontWeight:800,margin:'0 0 10px',fontFamily:"'Playfair Display',Georgia,serif"}}>
+            Best {cat} in {city}
+          </h1>
+          <p style={{color:'#8a8da0',fontSize:15,margin:'0 0 32px'}}>
+            {businesses?.length||0} verified {cat.toLowerCase()} · contact info · directions · reviews
           </p>
-        )}
-      </section>
 
-      <section className="mt-10 rounded-xl border border-blue-200 bg-blue-50/50 p-4">
-        <p className="font-medium text-zinc-900">List your {category.name} business in {city.name}</p>
-        <Link
-          href="/list-your-business"
-          className="mt-2 inline-block text-sm font-medium text-blue-700 hover:underline"
-        >
-          Get featured →
-        </Link>
-      </section>
-    </div>
-  );
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16,marginBottom:40}}>
+            {(businesses||[]).map((b:any)=>(
+              <Link key={b.id} href={`/b/${b.id}`}
+                style={{background:'#141620',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'18px',textDecoration:'none',display:'block',transition:'border-color 0.2s'}}
+                onMouseEnter={e=>(e.currentTarget.style.borderColor='rgba(201,168,76,0.3)')}
+                onMouseLeave={e=>(e.currentTarget.style.borderColor='rgba(255,255,255,0.07)')}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+                  <div style={{fontWeight:700,color:'#e8e9f0',fontSize:15}}>{b.name}</div>
+                  {b.is_verified && <span style={{background:'rgba(34,197,94,0.1)',color:'#22c55e',fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:99,flexShrink:0}}>✓ Verified</span>}
+                </div>
+                {b.address && <div style={{color:'#475569',fontSize:12,marginBottom:8}}>📍 {b.address}</div>}
+                {b.phone && <div style={{color:'#60a5fa',fontSize:12,marginBottom:8}}>📞 {b.phone}</div>}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{color:'#f59e0b',fontSize:13,fontWeight:600}}>⭐ {Number(b.avg_rating||0).toFixed(1)}</span>
+                  {['featured','premium'].includes(b.plan) && <span style={{background:'rgba(201,168,76,0.1)',color:G,fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:99}}>★ Featured</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* SEO content — clean, editorial */}
+          <div style={{background:'#141620',border:'1px solid rgba(255,255,255,0.07)',borderRadius:14,padding:'28px'}}>
+            <h2 style={{color:'#e8e9f0',fontSize:20,fontWeight:700,margin:'0 0 14px',fontFamily:"'Playfair Display',Georgia,serif"}}>
+              Find the Best {cat} Near You in {city}
+            </h2>
+            <p style={{color:'#8a8da0',fontSize:14,lineHeight:1.8}}>
+              Looking for trusted {cat.toLowerCase()} in {city}? Our verified directory lists {businesses?.length||0} {cat.toLowerCase()} with real contact details, addresses, opening hours and user ratings. Each listing includes directions so you can navigate directly from your phone. Browse by rating, location or plan type to find exactly what you need.
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  )
 }
