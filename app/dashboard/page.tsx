@@ -1,131 +1,60 @@
-"use client";
-import { useState } from "react";
-import Link from "next/link";
-
-const GOLD = "#C9A84C";
-const GOLD_DARK = "#A07830";
+'use client'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const s = { bg: "var(--bg)", bgSec: "var(--bg-secondary)", bgCard: "var(--bg-card)", text: "var(--text-primary)", textSec: "var(--text-secondary)", textMuted: "var(--text-muted)", border: "var(--border)" };
+  const [loading, setLoading]   = useState(true)
+  const [profile, setProfile]   = useState<any>(null)
+  const [email, setEmail]       = useState<string>('')
 
-  const myBusinesses = [
-    { name: "The Grand Kitchen", cat: "Restaurant", city: "Delhi", status: "active", plan: "featured", views: 347, calls: 28, rating: 4.5 },
-    { name: "Sharma Sweets", cat: "Bakery", city: "Gorakhpur", status: "pending", plan: "free", views: 0, calls: 0, rating: 0 },
-  ];
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+      setEmail(session.user.email || '')
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      setProfile(data)
+      setLoading(false)
+    }
+    init()
+  }, [])
+
+  const handleSignOut = async () => { await supabase.auth.signOut(); window.location.href = '/' }
+
+  if (loading) return (
+    <div style={{ minHeight:'100vh', background:'#0A0B0F', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <p style={{ color:'#C9A84C', fontFamily:"'DM Sans',sans-serif" }}>Loading...</p>
+    </div>
+  )
+
+  const isAdmin = ['super_admin','moderator'].includes(profile?.role)
 
   return (
-    <div style={{ background: s.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-      {/* Nav */}
-      <nav style={{ background: s.bgCard, borderBottom: `1px solid ${s.border}`, padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>📍</div>
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: s.text }}>SKM Studio <span style={{ color: GOLD }}>Maps</span></span>
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href="/add-business" style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", padding: "8px 16px", borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>+ Add Business</Link>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#000", fontWeight: 700, fontSize: 14 }}>RS</div>
-        </div>
-      </nav>
+    <div style={{ minHeight:'100vh', background:'#0A0B0F', fontFamily:"'DM Sans',sans-serif", padding:'80px 24px 32px' }}>
+      <div style={{ maxWidth:700, margin:'0 auto' }}>
+        <h1 style={{ color:'#e8e9f0', fontSize:28, fontWeight:800, margin:'0 0 4px', fontFamily:"'Playfair Display',Georgia,serif" }}>My Dashboard</h1>
+        <p style={{ color:'#8a8da0', fontSize:14, margin:'0 0 32px' }}>{email}</p>
 
-      <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
-        {/* Sidebar */}
-        <div style={{ width: 240, background: s.bgCard, borderRight: `1px solid ${s.border}`, padding: "24px 16px", flexShrink: 0 }}>
-          <div style={{ marginBottom: 8, padding: "8px 12px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: s.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Menu</div>
-          </div>
-          {[
-            ["overview", "📊 Overview"],
-            ["businesses", "🏢 My Businesses"],
-            ["reviews", "⭐ Reviews"],
-            ["analytics", "📈 Analytics"],
-            ["settings", "⚙️ Settings"],
-          ].map(([id, label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, border: "none", background: activeTab === id ? `rgba(201,168,76,0.1)` : "transparent", color: activeTab === id ? GOLD : s.textSec, fontWeight: activeTab === id ? 700 : 400, fontSize: 14, cursor: "pointer", marginBottom: 2 }}>
-              {label}
-            </button>
-          ))}
-
-          <div style={{ marginTop: 24, padding: "16px", background: "rgba(201,168,76,0.08)", border: `1px solid ${GOLD}30`, borderRadius: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: GOLD, marginBottom: 6 }}>⚡ Pre-launch ends soon!</div>
-            <div style={{ fontSize: 11, color: s.textMuted, marginBottom: 10 }}>Upgrade to Featured for ₹999/year</div>
-            <Link href="/pricing" style={{ display: "block", textAlign: "center", background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", padding: "7px", borderRadius: 6, fontWeight: 700, fontSize: 12, textDecoration: "none" }}>Upgrade Now</Link>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
-          {activeTab === "overview" && (
+        <div style={{ background:'#141620', border:'1px solid rgba(201,168,76,0.15)', borderRadius:16, padding:'24px', marginBottom:20 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:20 }}>
+            <div style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg,#C9A84C,#E8C97A)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#0A0B0F' }}>
+              {(profile?.full_name || email)?.[0]?.toUpperCase()}
+            </div>
             <div>
-              <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, color: s.text, margin: "0 0 24px" }}>Welcome back, Rahul 👋</h1>
-
-              {/* Stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
-                {[["🏢", "Businesses", "2", "+1 this month"], ["👁️", "Total Views", "347", "+23% vs last week"], ["📞", "Call Clicks", "28", "+12 this week"], ["⭐", "Avg Rating", "4.5", "Based on 58 reviews"]].map(([icon, label, val, sub]) => (
-                  <div key={label} style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 12, padding: "18px" }}>
-                    <div style={{ fontSize: 22, marginBottom: 8 }}>{icon}</div>
-                    <div style={{ fontSize: 11, color: s.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: s.text, fontFamily: "'Sora', sans-serif" }}>{val}</div>
-                    <div style={{ fontSize: 11, color: "#10B981", marginTop: 4 }}>{sub}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* My listings */}
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: s.text, margin: "0 0 14px" }}>My Listings</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {myBusinesses.map(biz => (
-                  <div key={biz.name} style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 12, padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: s.text }}>{biz.name}</div>
-                      <div style={{ fontSize: 13, color: s.textMuted, marginTop: 2 }}>{biz.cat} · {biz.city}</div>
-                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                        <span style={{ background: biz.status === "active" ? "#0D2B1F" : "#2D1A0A", color: biz.status === "active" ? "#10B981" : "#F59E0B", fontSize: 11, padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>
-                          {biz.status === "active" ? "● Active" : "⏳ Pending Review"}
-                        </span>
-                        <span style={{ background: biz.plan === "featured" ? "rgba(201,168,76,0.1)" : "var(--bg-secondary)", color: biz.plan === "featured" ? GOLD : s.textMuted, fontSize: 11, padding: "2px 8px", borderRadius: 99, fontWeight: 600 }}>
-                          {biz.plan === "featured" ? "⭐ Featured" : "Free"}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 24, textAlign: "center" }}>
-                      {[["Views", biz.views], ["Calls", biz.calls]].map(([l, v]) => (
-                        <div key={l as string}>
-                          <div style={{ fontSize: 20, fontWeight: 800, color: GOLD, fontFamily: "'Sora', sans-serif" }}>{v}</div>
-                          <div style={{ fontSize: 11, color: s.textMuted }}>{l}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div style={{ color:'#e8e9f0', fontWeight:700, fontSize:17 }}>{profile?.full_name || email.split('@')[0]}</div>
+              <div style={{ color:'#C9A84C', fontSize:13, fontWeight:600, textTransform:'uppercase', letterSpacing:1 }}>{profile?.role?.replace('_',' ')}</div>
             </div>
-          )}
+          </div>
 
-          {activeTab === "analytics" && (
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, color: s.text, margin: 0 }}>Analytics Dashboard</h1>
-                <span style={{ background: "rgba(201,168,76,0.1)", border: `1px solid ${GOLD}30`, color: GOLD, fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 99 }}>Coming Soon with Premium Plan</span>
-              </div>
-              <div style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 16, padding: "48px", textAlign: "center" }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
-                <h2 style={{ color: s.text, fontFamily: "'Sora', sans-serif", margin: "0 0 8px" }}>Analytics Coming Soon</h2>
-                <p style={{ color: s.textMuted, fontSize: 14, marginBottom: 24 }}>Upgrade to Premium (₹4,999/month) to get detailed analytics including views, clicks, call tracking, and customer insights.</p>
-                <Link href="/pricing" style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_DARK})`, color: "#000", padding: "12px 28px", borderRadius: 10, fontWeight: 700, textDecoration: "none", display: "inline-block" }}>View Plans</Link>
-              </div>
-            </div>
-          )}
-
-          {(activeTab === "reviews" || activeTab === "businesses" || activeTab === "settings") && (
-            <div style={{ background: s.bgCard, border: `1px solid ${s.border}`, borderRadius: 16, padding: "48px", textAlign: "center" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🚧</div>
-              <h2 style={{ color: s.text, fontFamily: "'Sora', sans-serif", margin: "0 0 8px", textTransform: "capitalize" }}>{activeTab} — Coming Soon</h2>
-              <p style={{ color: s.textMuted, fontSize: 14 }}>This section is under development. Check back soon!</p>
-            </div>
-          )}
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+            <Link href="/listings" style={{ background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.2)', color:'#C9A84C', padding:'8px 16px', borderRadius:8, textDecoration:'none', fontSize:13, fontWeight:600 }}>Browse Listings</Link>
+            <Link href="/add-business" style={{ background:'linear-gradient(135deg,#C9A84C,#E8C97A)', color:'#0A0B0F', padding:'8px 16px', borderRadius:8, textDecoration:'none', fontSize:13, fontWeight:700 }}>+ Add Business</Link>
+            {isAdmin && <Link href="/admin" style={{ background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.3)', color:'#a78bfa', padding:'8px 16px', borderRadius:8, textDecoration:'none', fontSize:13, fontWeight:600 }}>Admin Panel →</Link>}
+            <button onClick={handleSignOut} style={{ background:'transparent', border:'1px solid rgba(239,68,68,0.3)', color:'#ef4444', padding:'8px 16px', borderRadius:8, fontSize:13, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>Sign Out</button>
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
