@@ -15,6 +15,15 @@ out/
 Thumbs.db
 *.log
 
+# Personal & Sensitive
+Website Traffic Plan.xlsx
+Pharmacy Stores Data.csv
+add_vercel_env.py
+push_*.py
+fix_*.py
+inspect_and_fix.py
+configure_resend.py
+
 # Workspace
 .vscode/
 .idea/

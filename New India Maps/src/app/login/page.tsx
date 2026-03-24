@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { LogIn, Mail, Lock, Sparkles, ArrowRight } from 'lucide-react';
 
 const GOLD = "#D4AF37";
 const DARK_BG = "#0f172a";
@@ -10,11 +11,25 @@ const DARK_CARD = "#1e293b";
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = createClientComponentClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
   const [mode, setMode] = useState<'password' | 'magic'>('password');
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/dashboard');
+      } else {
+        setCheckingSession(false);
+      }
+    };
+    checkUser();
+  }, [router, supabase.auth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,16 +40,17 @@ export default function LoginPage() {
       if (mode === 'password') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push('/admin');
+        router.push('/dashboard');
+        router.refresh();
       } else {
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: window.location.origin + '/auth/callback',
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
-        setMessage({ type: 'success', text: 'Magic link sent! Check your inbox.' });
+        setMessage({ type: 'success', text: 'Magic link sent! Check your email.' });
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Authentication failed' });
@@ -43,104 +59,132 @@ export default function LoginPage() {
     }
   };
 
-  const containerStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    backgroundColor: DARK_BG,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px',
-    fontFamily: 'var(--font-dm-sans), sans-serif',
-    color: '#ffffff'
-  };
+  if (checkingSession) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: DARK_BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: GOLD, fontSize: '18px', fontWeight: '600' }}>Checking session...</div>
+      </div>
+    );
+  }
 
-  const cardStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: '400px',
-    backgroundColor: DARK_CARD,
-    borderRadius: '20px',
-    padding: '40px',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-    border: '1px solid rgba(255,255,255,0.1)'
+  const inputContainerStyle: React.CSSProperties = {
+    position: 'relative',
+    marginBottom: '20px'
   };
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
     backgroundColor: '#0f172a',
-    border: '1px solid rgba(255,255,255,0.1)',
+    border: '1.5px solid rgba(255,255,255,0.1)',
     borderRadius: '12px',
-    padding: '12px 16px',
+    padding: '14px 16px 14px 44px',
     color: '#ffffff',
-    fontSize: '16px',
+    fontSize: '15px',
     outline: 'none',
-    marginTop: '8px'
+    transition: 'all 0.2s ease',
   };
 
-  const buttonStyle: React.CSSProperties = {
-    width: '100%',
-    backgroundColor: GOLD,
-    color: '#000000',
-    border: 'none',
-    borderRadius: '12px',
-    padding: '14px',
-    fontSize: '16px',
-    fontWeight: '700',
-    cursor: 'pointer',
-    marginTop: '24px',
-    transition: 'transform 0.1s, opacity 0.2s',
+  const iconStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: '14px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: '#64748b'
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={cardStyle}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px', color: GOLD }}>
-            Secure Login
+    <div style={{
+      minHeight: 'calc(100vh - 72px)',
+      backgroundColor: DARK_BG,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      background: `radial-gradient(circle at top left, #1e293b 0%, ${DARK_BG} 70%)`
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '440px',
+        backgroundColor: DARK_CARD,
+        borderRadius: '24px',
+        padding: '48px',
+        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.7)',
+        border: '1px solid rgba(255,255,255,0.05)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Aesthetic highlight */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '4px',
+          background: `linear-gradient(to right, ${GOLD}, #B8860B)`
+        }} />
+
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            backgroundColor: 'rgba(212, 175, 55, 0.1)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: GOLD,
+            margin: '0 auto 20px'
+          }}>
+            <LogIn size={32} />
+          </div>
+          <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px', color: '#ffffff', letterSpacing: '-0.5px' }}>
+            Welcome Back
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-            New India Maps Administration
+          <p style={{ color: '#94a3b8', fontSize: '15px', fontWeight: '500' }}>
+            Enter your credentials to manage your listings
           </p>
         </div>
 
         {message && (
           <div style={{
-            padding: '12px',
-            borderRadius: '8px',
+            padding: '14px 18px',
+            borderRadius: '12px',
             backgroundColor: message.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-            color: message.type === 'error' ? '#ef4444' : '#10b981',
-            fontSize: '13px',
-            marginBottom: '20px',
-            border: `1px solid ${message.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
+            color: message.type === 'error' ? '#f87171' : '#34d399',
+            fontSize: '14px',
+            fontWeight: '600',
+            marginBottom: '24px',
+            border: `1px solid ${message.type === 'error' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
           }}>
+            <span style={{ fontSize: '18px' }}>{message.type === 'error' ? '⚠️' : '✅'}</span>
             {message.text}
           </div>
         )}
 
         <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>
-              Email Address
-            </label>
+          <div style={inputContainerStyle}>
+            <Mail size={18} style={iconStyle} />
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@maps.com"
+              placeholder="Email address"
               style={inputStyle}
               required
             />
           </div>
 
           {mode === 'password' && (
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.05em' }}>
-                Password
-              </label>
+            <div style={inputContainerStyle}>
+              <Lock size={18} style={iconStyle} />
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Password"
                 style={inputStyle}
                 required
               />
@@ -148,28 +192,55 @@ export default function LoginPage() {
           )}
 
           <button type="submit" disabled={loading} style={{
-            ...buttonStyle,
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? 'not-allowed' : 'pointer'
+            width: '100%',
+            background: `linear-gradient(135deg, ${GOLD}, #B8860B)`,
+            color: '#000000',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '16px',
+            fontSize: '16px',
+            fontWeight: '800',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            marginTop: '12px',
+            opacity: loading ? 0.8 : 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            boxShadow: `0 8px 20px ${GOLD}33`,
+            transition: 'all 0.2s ease'
           }}>
-            {loading ? 'Processing...' : (mode === 'password' ? 'Sign In' : 'Send Magic Link')}
+            {loading ? 'Authenticating...' : (
+              <>
+                {mode === 'password' ? 'Sign In' : 'Send Magic Link'}
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+        <div style={{ marginTop: '32px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
           <button 
             onClick={() => { setMode(mode === 'password' ? 'magic' : 'password'); setMessage(null); }}
             style={{
               background: 'none',
               border: 'none',
               color: GOLD,
-              fontSize: '13px',
-              fontWeight: '600',
+              fontSize: '14px',
+              fontWeight: '700',
               cursor: 'pointer',
-              textDecoration: 'underline'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              margin: '0 auto',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              transition: 'all 0.2s ease'
             }}
           >
-            {mode === 'password' ? 'Switch to Magic Link' : 'Switch to Password Login'}
+            <Sparkles size={16} />
+            {mode === 'password' ? 'Prefer passwordless? Get Magic Link' : 'Secure Login with Password'}
           </button>
         </div>
       </div>
