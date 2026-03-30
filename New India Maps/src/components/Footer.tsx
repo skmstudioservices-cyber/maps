@@ -16,7 +16,7 @@ export default function Footer() {
     }}>
       <div style={{ marginBottom: '16px' }}>
         <span style={{ color: '#ffffff', fontWeight: '800' }}>
-          New India <span style={{ color: '#D4AF37' }}>Maps</span>
+          SKM Studio <span style={{ color: '#D4AF37' }}>Maps</span>
         </span>
       </div>
       <p>© {new Date().getFullYear()} SKM Studio Services. All rights reserved.</p>

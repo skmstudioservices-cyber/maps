@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { LogIn, Mail, Lock, Sparkles, ArrowRight } from 'lucide-react';
 
 const GOLD = "#D4AF37";
@@ -11,7 +11,10 @@ const DARK_CARD = "#1e293b";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -138,7 +141,7 @@ export default function LoginPage() {
             <LogIn size={32} />
           </div>
           <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px', color: '#ffffff', letterSpacing: '-0.5px' }}>
-            Welcome Back
+            SKM Studio <span style={{ color: GOLD }}>Maps</span>
           </h1>
           <p style={{ color: '#94a3b8', fontSize: '15px', fontWeight: '500' }}>
             Enter your credentials to manage your listings

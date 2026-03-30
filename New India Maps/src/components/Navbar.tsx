@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { 
   MapPin, 
   Search, 
@@ -24,7 +24,11 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
     const getUser = async () => {
@@ -117,7 +121,7 @@ export default function Navbar() {
             fontSize: '20px',
             letterSpacing: '-0.5px'
           }}>
-            New India <span style={{ color: GOLD }}>Maps</span>
+            SKM Studio <span style={{ color: GOLD }}>Maps</span>
           </span>
         </Link>
 

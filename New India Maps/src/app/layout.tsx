@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "New India Maps - The Premium Business Directory",
+  title: "SKM Studio Maps - India's Premium Business Directory",
   description: "Discover verified businesses across India with ultra-precise location mapping.",
 };
 
